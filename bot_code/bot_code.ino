@@ -1,7 +1,9 @@
 /*
  *  Authors: Narcís Bustins & Ferran Veciana
- * 
- *  This program is free software: you can redistribute it and/or modify
+ *
+ *  This file is part of handbot.
+ *
+ *  handbot is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
@@ -14,8 +16,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SPI.h>  
-#include "RF24.h" 
+#include <SPI.h>
+#include "RF24.h"
 
 //Definicio dels moviments segons protocol moviments
 #define goEndevant 1
@@ -26,7 +28,7 @@
 
 //Definicio de les velocitats segons protocol velocitats
 #define vLent 0
-#define vNormal 1  
+#define vNormal 1
 #define vRapid 2
 
 
@@ -56,27 +58,27 @@ int rec_vel;
 int rec_mov;
 
 
-RF24 myRadio (7, 8); 
+RF24 myRadio (7, 8);
 struct package
 {
   int mov=0;
   int vel=0;
 };
 
-byte addresses[][6] = {"0"}; 
+byte addresses[][6] = {"0"};
 
 typedef struct package Package;
 Package data;
 
-void setup() 
+void setup()
 {
   Serial.begin(115200);
   delay(1000);
 
-  myRadio.begin(); 
-  myRadio.setChannel(115); 
+  myRadio.begin();
+  myRadio.setChannel(115);
   myRadio.setPALevel(RF24_PA_MAX);
-  myRadio.setDataRate( RF24_250KBPS ) ; 
+  myRadio.setDataRate( RF24_250KBPS ) ;
   myRadio.openReadingPipe(1, addresses[0]);
   myRadio.startListening();
 
@@ -100,7 +102,7 @@ void setup()
 
 //Realitzar moviment endavant
 void endavant(int vel){
-  
+
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
   //velocitat
@@ -108,14 +110,14 @@ void endavant(int vel){
   // turn on motor B
   digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
-  //velocitat 
+  //velocitat
   analogWrite(enB, vel);
-  
+
 }
 
 //Realitzar moviment endarrere
 void endarrere(int vel){
-  
+
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
   //velocitat
@@ -125,13 +127,13 @@ void endarrere(int vel){
   digitalWrite(in4, HIGH);
   //velocitat
   analogWrite(enB, vel);
- 
-  
+
+
 }
 
 //Realitzar moviment de gir cap a la esquerra
 void esquerra(int vel){
-  
+
   //Roda endevnat
   digitalWrite(in3, LOW);
   digitalWrite(in4, HIGH);
@@ -142,12 +144,12 @@ void esquerra(int vel){
   digitalWrite(in2, LOW);
   analogWrite(enA, vel);
 
-  
+
 }
 
 //Realitzar moviment de gir cap a la dreta
 void dreta(int vel){
-  
+
   //Roda endavant
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
@@ -157,22 +159,22 @@ void dreta(int vel){
   digitalWrite(in3, HIGH);
   digitalWrite(in4, LOW);
   analogWrite(enB, vel);
-  
+
 }
 
 //Parar el moviment dels dos motors
 void stopMov(){
-  //Parar els dos motors 
+  //Parar els dos motors
   digitalWrite(in1, LOW);
   digitalWrite(in2, LOW);
   digitalWrite(in3, LOW);
-  digitalWrite(in4, LOW); 
+  digitalWrite(in4, LOW);
 }
 
 
 //Protocol
 int triarVelocitat(int vel){
-    
+
   int v = 0;
   if (vel == vLent){
     v = valor_vLent;
@@ -182,18 +184,18 @@ int triarVelocitat(int vel){
   }
   else if (vel == vRapid){
     v = valor_vRapid;
-      
+
   }
-  else 
+  else
        v = 0;
-  
-  return v;  
-     
+
+  return v;
+
 }
 
 //Calcul de la distancia segons el sensor d'ultrasons
 int llegirUltrasons(){
-  
+
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
@@ -203,19 +205,19 @@ int llegirUltrasons(){
   distancia= duracio*0.034/2;
 
   return distancia;
-  
+
 }
 
 
-void loop()  
+void loop()
 {
 
   //Rebre senyals
-  if ( myRadio.available()) 
+  if ( myRadio.available())
   {
     while (myRadio.available())
     {
-      //llegir paquet 
+      //llegir paquet
       myRadio.read( &data, sizeof(data) );
     }
 
@@ -224,8 +226,8 @@ void loop()
 
     //Establir velocitat
     int vel = triarVelocitat(rec_vel);
-    
-    
+
+
     //Moure motors
     stopMov(); //Primer aturem el moviment previ
     if(rec_mov == goEndevant && llegirUltrasons() <= 17){
@@ -244,12 +246,12 @@ void loop()
       stopMov();
     }
   }
- 
+
   else{
      stopMov();
   }
-    
+
  delay(10);
- 
-   
+
+
 }
